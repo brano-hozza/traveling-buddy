@@ -1,4 +1,5 @@
 import { IHousing, IRestaurant } from "./interfaces";
+import { Location } from "./Location";
 
 export enum RouteState {
   Created = "Created",
@@ -6,12 +7,6 @@ export enum RouteState {
   Paused = "Paused",
   Canceled = "Canceled",
   Finished = "Finished",
-}
-export interface Location {
-  id: number;
-  lat: number;
-  lng: number;
-  name: string;
 }
 export class Path {
   public start?: Location;
@@ -38,9 +33,9 @@ export class Route {
   public date: Date;
   public housings: IHousing[];
   public restaurants: IRestaurant[];
-  constructor(id: number, name: string) {
+  constructor(id: number) {
     this.id = id;
-    this.name = name;
+    this.name = "";
     this.state = RouteState.Created;
     this.path = new Path();
     this.date = new Date();

@@ -6,39 +6,56 @@ export class AuthGUI {
   currentToken?: string;
   appDom: HTMLElement;
   errors: HTMLDivElement;
-  registerForm: HTMLFormElement;
-  loginForm: HTMLFormElement;
-  logoutForm: HTMLFormElement;
-  userInfo: HTMLDivElement;
+  registerForm?: HTMLFormElement;
+  loginForm?: HTMLFormElement;
+  logoutForm?: HTMLFormElement;
+  userInfo?: HTMLDivElement;
+  tokenCallback?: (token: string | undefined) => void;
   constructor(private appName: string, private authService: IAuthService) {
     this.appDom = document.querySelector(this.appName) as HTMLElement;
-    this.errors = document.createElement("div") as HTMLDivElement;
+    this.errors = document.querySelector("#errors") as HTMLDivElement;
     this.appDom.appendChild(this.errors);
+  }
+
+  render() {
     this.registerForm = this.createRegisterForm();
     this.loginForm = this.createLoginForm();
     this.logoutForm = this.createLogoutForm();
     this.userInfo = this.createUserInfo();
     this.logoutForm.style.display = "none";
     this.userInfo.style.display = "none";
-    this.appDom.appendChild(this.registerForm);
-    this.appDom.appendChild(this.loginForm);
-    this.appDom.appendChild(this.userInfo);
-    this.appDom.appendChild(this.logoutForm);
+    if (this.appDom) {
+      this.appDom.appendChild(this.registerForm);
+      this.appDom.appendChild(this.loginForm);
+      this.appDom.appendChild(this.userInfo);
+      this.appDom.appendChild(this.logoutForm);
+    }
+  }
+
+  setTokenCallback(callback: (token: string | undefined) => void) {
+    this.tokenCallback = callback;
+  }
+
+  setToken(token: string | undefined) {
+    this.currentToken = token;
+    if (this.tokenCallback) {
+      this.tokenCallback(token);
+    }
   }
 
   setLoggedIn() {
     this.updateUserInfo();
-    this.registerForm.style.display = "none";
-    this.loginForm.style.display = "none";
-    this.userInfo.style.display = "block";
-    this.logoutForm.style.display = "block";
+    this.registerForm!.style.display = "none";
+    this.loginForm!.style.display = "none";
+    this.userInfo!.style.display = "block";
+    this.logoutForm!.style.display = "block";
   }
 
   setLoggedOut() {
-    this.registerForm.style.display = "block";
-    this.loginForm.style.display = "block";
-    this.userInfo.style.display = "none";
-    this.logoutForm.style.display = "none";
+    this.registerForm!.style.display = "block";
+    this.loginForm!.style.display = "block";
+    this.userInfo!.style.display = "none";
+    this.logoutForm!.style.display = "none";
   }
 
   createRegisterForm(): HTMLFormElement {
@@ -79,7 +96,7 @@ export class AuthGUI {
         this.createError(resp.error as string);
         return;
       }
-      this.currentToken = resp.data as string;
+      this.setToken(resp.data as string);
       this.setLoggedIn();
     });
     form.appendChild(registerButton);
@@ -117,7 +134,7 @@ export class AuthGUI {
         this.createError(resp.error as string);
         return;
       }
-      this.currentToken = resp.data as string;
+      this.setToken(resp.data as string);
       this.setLoggedIn();
     });
     form.appendChild(loginButton);
@@ -126,7 +143,8 @@ export class AuthGUI {
     guestButton.innerText = "Login as guest";
     guestButton.addEventListener("click", (e) => {
       e.preventDefault();
-      this.currentToken = this.authService.createGuest();
+
+      this.setToken(this.authService.createGuest());
       this.setLoggedIn();
     });
     form.appendChild(guestButton);
@@ -153,7 +171,7 @@ export class AuthGUI {
           this.createError(resp.error as string);
           return;
         }
-        this.currentToken = undefined;
+        this.setToken(undefined);
         this.setLoggedOut();
         return;
       }
