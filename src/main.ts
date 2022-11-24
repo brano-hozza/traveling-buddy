@@ -14,11 +14,11 @@ const routeService = new RouteService(authService);
 
 // Init GUI
 const errors = document.createElement("div");
+errors.innerHTML = "Errors:";
 errors.id = "errors";
 errors.style.color = "red";
 errors.style.border = "1px solid red";
 errors.style.padding = "10px";
-errors.style.display = "none";
 
 document.body.appendChild(errors);
 const authGUI = new AuthGUI("#app", authService);
@@ -27,7 +27,7 @@ authGUI.setTokenCallback(routeGUI.setUserToken.bind(routeGUI));
 
 // Mock data
 for (let i = 0; i < 10; i++) {
-  routeGUI.addLocation(new Location(i, "Location" + i, "Address" + i));
+  routeGUI.addLocation(new Location(i, "Location " + i, "Address " + i));
 
   routeGUI.addHousing(
     new Housing(i, "Housing " + i, "Funny address", [`Offer - ${i}`])

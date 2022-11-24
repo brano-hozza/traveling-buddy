@@ -32,6 +32,16 @@ export class AuthGUI {
     }
   }
 
+  createError(error: string) {
+    const errorDiv = document.createElement("div") as HTMLDivElement;
+    errorDiv.innerText = error;
+    errorDiv.style.color = "red";
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 2000);
+    this.errors.appendChild(errorDiv);
+  }
+
   setTokenCallback(callback: (token: string | undefined) => void) {
     this.tokenCallback = callback;
   }
@@ -208,14 +218,6 @@ export class AuthGUI {
     div.appendChild(userRole);
 
     return div;
-  }
-
-  createError(error: string) {
-    this.errors.innerText = error;
-    setTimeout(() => {
-      this.errors.innerText = "";
-    }, 2000);
-    this.appDom.prepend;
   }
 
   updateUserInfo(): void {

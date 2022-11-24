@@ -33,13 +33,13 @@ export class RouteGUI {
   }
 
   createError(error: string) {
-    this.errors.style.display = "block";
-    this.errors.innerText = error;
+    const errorDiv = document.createElement("div") as HTMLDivElement;
+    errorDiv.innerText = error;
+    errorDiv.style.color = "red";
     setTimeout(() => {
-      this.errors.innerText = "";
-      this.errors.style.display = "none";
+      errorDiv.remove();
     }, 2000);
-    this.appDom.prepend;
+    this.errors.appendChild(errorDiv);
   }
 
   createRouteForm(): HTMLFormElement {
