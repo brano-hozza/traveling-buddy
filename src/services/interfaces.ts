@@ -26,4 +26,5 @@ export interface IRouteService {
   prepareRoute(): Route;
   addRoute(token: string, route: Route): Response<void>;
   getRoutes(token: string): Response<Route[]>;
+  deleteRoute(token: string, routeId: number): Response<void>;
 }

@@ -11,6 +11,7 @@ export class AuthGUI {
   logoutForm?: HTMLFormElement;
   userInfo?: HTMLDivElement;
   tokenCallback?: (token: string | undefined) => void;
+  rerenderCallback?: () => void;
   constructor(private appName: string, private authService: IAuthService) {
     this.appDom = document.querySelector(this.appName) as HTMLElement;
     this.errors = document.querySelector("#errors") as HTMLDivElement;
@@ -18,17 +19,30 @@ export class AuthGUI {
   }
 
   render() {
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "flex";
+    wrapper.style.flexDirection = "row";
+    wrapper.style.justifyContent = "space-evenly";
     this.registerForm = this.createRegisterForm();
+    this.registerForm.style.width = "100%";
+    wrapper.appendChild(this.registerForm);
+
     this.loginForm = this.createLoginForm();
-    this.logoutForm = this.createLogoutForm();
+    this.loginForm.style.width = "100%";
+    wrapper.appendChild(this.loginForm);
+
     this.userInfo = this.createUserInfo();
+    wrapper.appendChild(this.userInfo);
+    this.userInfo.style.width = "100%";
+
+    this.logoutForm = this.createLogoutForm();
+    wrapper.appendChild(this.logoutForm);
+    this.logoutForm.style.width = "100%";
+
     this.logoutForm.style.display = "none";
     this.userInfo.style.display = "none";
     if (this.appDom) {
-      this.appDom.appendChild(this.registerForm);
-      this.appDom.appendChild(this.loginForm);
-      this.appDom.appendChild(this.userInfo);
-      this.appDom.appendChild(this.logoutForm);
+      this.appDom.appendChild(wrapper);
     }
   }
 
@@ -38,8 +52,16 @@ export class AuthGUI {
     errorDiv.style.color = "red";
     setTimeout(() => {
       errorDiv.remove();
+      if (!this.errors.children.length) {
+        this.errors.style.display = "none";
+      }
     }, 2000);
+    this.errors.style.display = "block";
     this.errors.appendChild(errorDiv);
+  }
+
+  setRerenderCallback(callback: () => void) {
+    this.rerenderCallback = callback;
   }
 
   setTokenCallback(callback: (token: string | undefined) => void) {
@@ -59,6 +81,9 @@ export class AuthGUI {
     this.loginForm!.style.display = "none";
     this.userInfo!.style.display = "block";
     this.logoutForm!.style.display = "block";
+    if (this.rerenderCallback) {
+      this.rerenderCallback();
+    }
   }
 
   setLoggedOut() {
@@ -66,6 +91,9 @@ export class AuthGUI {
     this.loginForm!.style.display = "block";
     this.userInfo!.style.display = "none";
     this.logoutForm!.style.display = "none";
+    if (this.rerenderCallback) {
+      this.rerenderCallback();
+    }
   }
 
   createRegisterForm(): HTMLFormElement {

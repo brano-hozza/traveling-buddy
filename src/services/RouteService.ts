@@ -23,6 +23,23 @@ export class RouteService implements IRouteService {
     return Response.ok();
   }
 
+  deleteRoute(token: string, routeId: number): Response<void> {
+    const resp = this.authService.getUser(token);
+    if (resp.type === ResponseType.Error) {
+      return Response.error(resp.error as string);
+    }
+    if (!this.routes[resp.data?.id as number]) {
+      return Response.error("User doesnt have routes");
+    }
+    if (this.routes[resp.data?.id as number][routeId] === undefined) {
+      return Response.error("Route doesnt exist");
+    }
+    this.routes[resp.data?.id as number] = this.routes[
+      resp.data?.id as number
+    ].filter((r) => r.id !== routeId);
+    return Response.ok();
+  }
+
   getRoutes(token: string): Response<Route[]> {
     const resp = this.authService.getUser(token);
     if (resp.type === ResponseType.Error) {
