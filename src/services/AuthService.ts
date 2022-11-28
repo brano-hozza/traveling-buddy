@@ -54,6 +54,7 @@ export class AuthService implements IAuthService {
 
     // set new token
     this.logged_tokens[token] = user.id;
+
     return Response.ok(token);
   }
 

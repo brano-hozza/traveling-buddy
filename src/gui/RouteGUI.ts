@@ -1,7 +1,7 @@
 import { Housing } from "../entities/Housing";
 import { Location } from "../entities/Location";
 import { Restaurant } from "../entities/Restaurant";
-import { Route } from "../entities/Route";
+import { Route, RouteState } from "../entities/Route";
 import { ResponseType } from "../helpers/Response";
 import { IRouteService } from "../services/interfaces";
 
@@ -9,30 +9,32 @@ type SelectOption = { value: string };
 
 export class RouteGUI {
   appDom: HTMLElement;
-  errors: HTMLElement;
+  dialogs: HTMLElement;
   possibleLocations: Location[] = [];
   possibleHousings: Housing[] = [];
   possibleRestaurants: Restaurant[] = [];
   routeForm?: HTMLFormElement;
-  currentRoutes?: HTMLElement;
+  currentRoutesElement?: HTMLElement;
+  currentRoutes: Route[] = [];
   userToken?: string;
   constructor(private appName: string, private routeService: IRouteService) {
     this.appDom = document.querySelector(this.appName) as HTMLElement;
-    this.errors = document.querySelector("#errors") as HTMLElement;
+    this.dialogs = document.querySelector("#dialogs") as HTMLElement;
   }
 
   render() {
     this.routeForm = this.createRouteForm();
-    this.currentRoutes = this.createCurrentRoutes();
+    this.currentRoutesElement = this.createCurrentRoutes();
     if (this.appDom) {
       this.appDom.appendChild(this.routeForm);
-      this.appDom.appendChild(this.currentRoutes);
+      this.appDom.appendChild(this.currentRoutesElement);
     }
   }
 
   rerender() {
-    this.currentRoutes?.remove();
+    this.currentRoutesElement?.remove();
     this.routeForm?.remove();
+    this.loadCurrentRoutes();
     this.render();
   }
 
@@ -42,21 +44,36 @@ export class RouteGUI {
 
   createError(error: string) {
     const errorDiv = document.createElement("div") as HTMLDivElement;
-    errorDiv.innerText = error;
+    errorDiv.innerText = "Error: " + error;
     errorDiv.style.color = "red";
     setTimeout(() => {
       errorDiv.remove();
-      if (!this.errors.children.length) {
-        this.errors.style.display = "none";
+      if (!this.dialogs.children.length) {
+        this.dialogs.style.display = "none";
       }
     }, 2000);
-    this.errors.style.display = "block";
-    this.errors.appendChild(errorDiv);
+    this.dialogs.style.display = "block";
+    this.dialogs.appendChild(errorDiv);
+  }
+
+  createSuccess(success: string) {
+    const successDiv = document.createElement("div") as HTMLDivElement;
+    successDiv.innerText = "Success: " + success;
+    successDiv.style.color = "green";
+    setTimeout(() => {
+      successDiv.remove();
+      if (!this.dialogs.children.length) {
+        this.dialogs.style.display = "none";
+      }
+    }, 2000);
+    this.dialogs.style.display = "block";
+    this.dialogs.appendChild(successDiv);
   }
 
   createRoute(
     startLocationI: number,
     endLocationI: number,
+    selectedStopsI: SelectOption[],
     selectedHousingsI: SelectOption[],
     selectedRestaurantsI: SelectOption[]
   ): boolean {
@@ -73,12 +90,21 @@ export class RouteGUI {
     const endLocation = this.possibleLocations.find(
       (location) => location.id === endLocationI
     ) as Location;
+
+    const stops = selectedStopsI.map(
+      (stop) =>
+        this.possibleLocations.find(
+          (location) => location.id === parseInt(stop.value)
+        ) as Location
+    );
+
     const selectedHousings = selectedHousingsI.map(
       (option) =>
         this.possibleHousings.find(
           (housing) => housing.id === parseInt(option.value)
         ) as Housing
     );
+
     const selectedRestaurants = selectedRestaurantsI.map(
       (option) =>
         this.possibleRestaurants.find(
@@ -88,6 +114,9 @@ export class RouteGUI {
 
     newRoute.setStart(startLocation);
     newRoute.setEnd(endLocation);
+    for (const stop of stops) {
+      newRoute.addStop(stop);
+    }
     for (const housing of selectedHousings) {
       newRoute.addHousing(housing);
     }
@@ -144,6 +173,24 @@ export class RouteGUI {
     });
     routeForm.appendChild(endLocationEl);
 
+    const stopsLabel = document.createElement("label");
+    stopsLabel.innerText = "Stops";
+    stopsLabel.style.display = "block";
+    routeForm.appendChild(stopsLabel);
+
+    // add dropdowns of locations to pick stops
+    const stopsLocationEl = document.createElement("select");
+    stopsLocationEl.name = "stopsLocation";
+    stopsLocationEl.id = "stops-location";
+    stopsLocationEl.multiple = true;
+    this.possibleLocations.forEach((location) => {
+      const option = document.createElement("option");
+      option.value = location.id.toString();
+      option.innerText = location.name;
+      stopsLocationEl.appendChild(option);
+    });
+    routeForm.appendChild(stopsLocationEl);
+
     const housingLabel = document.createElement("label");
     housingLabel.innerText = "Housings";
     housingLabel.style.display = "block";
@@ -180,9 +227,6 @@ export class RouteGUI {
     });
     routeForm.appendChild(restaurantSelect);
 
-    const statusDiv = document.createElement("div");
-    routeForm.appendChild(statusDiv);
-
     const submitButton = document.createElement("button");
     submitButton.innerText = "Create route";
     submitButton.addEventListener("click", (e) => {
@@ -190,21 +234,15 @@ export class RouteGUI {
       const status = this.createRoute(
         parseInt(startLocationEl.value),
         parseInt(endLocationEl.value),
+        Array.from(stopsLocationEl.selectedOptions),
         Array.from(housingSelect.selectedOptions),
         Array.from(restaurantSelect.selectedOptions)
       );
       if (status) {
-        statusDiv.style.color = "green";
-        statusDiv.innerText = "Route created";
-        this.showCurrentRoutes();
-        setTimeout(() => {
-          statusDiv.innerText = "";
-        }, 1000);
+        this.rerender();
+        this.createSuccess("Route created successfully");
         return;
       }
-      statusDiv.style.color = "red";
-      statusDiv.innerText = "Cant create route";
-      setTimeout(() => (statusDiv.innerText = ""), 1000);
     });
 
     routeForm.appendChild(submitButton);
@@ -217,6 +255,10 @@ export class RouteGUI {
     routeEl.style.border = "1px solid black";
     routeEl.style.padding = "10px";
     routeEl.style.margin = "10px";
+
+    const routeStatus = document.createElement("b");
+    routeStatus.innerText = "Status: " + route.state;
+    routeEl.appendChild(routeStatus);
 
     const startLocationEl = document.createElement("p");
     startLocationEl.innerText = `Start location: ${route.path.start!.name}`;
@@ -244,6 +286,74 @@ export class RouteGUI {
       restaurantListEl.appendChild(restaurantEl);
     }
 
+    const startButton = document.createElement("button");
+    startButton.innerText = "Start route";
+    startButton.addEventListener("click", () => {
+      if (!this.userToken) {
+        this.createError("You need to be logged in to create a route");
+        return;
+      }
+      this.routeService.updateRouteStatus(
+        this.userToken,
+        route.id,
+        RouteState.Active
+      );
+      this.rerender();
+      this.createSuccess("Route started");
+    });
+    routeEl.appendChild(startButton);
+
+    const pauseButton = document.createElement("button");
+    pauseButton.innerText = "Pause route";
+    pauseButton.addEventListener("click", () => {
+      if (!this.userToken) {
+        this.createError("You need to be logged in to create a route");
+        return;
+      }
+      this.routeService.updateRouteStatus(
+        this.userToken,
+        route.id,
+        RouteState.Paused
+      );
+      this.rerender();
+      this.createSuccess("Route paused");
+    });
+    routeEl.appendChild(pauseButton);
+
+    const finishButton = document.createElement("button");
+    finishButton.innerText = "Finish route";
+    finishButton.addEventListener("click", () => {
+      if (!this.userToken) {
+        this.createError("You need to be logged in to create a route");
+        return;
+      }
+      this.routeService.updateRouteStatus(
+        this.userToken,
+        route.id,
+        RouteState.Finished
+      );
+      this.rerender();
+      this.createSuccess("Route finished");
+    });
+    routeEl.appendChild(finishButton);
+
+    const cancelButton = document.createElement("button");
+    cancelButton.innerText = "Cancel route";
+    cancelButton.addEventListener("click", () => {
+      if (!this.userToken) {
+        this.createError("You need to be logged in to create a route");
+        return;
+      }
+      this.routeService.updateRouteStatus(
+        this.userToken,
+        route.id,
+        RouteState.Canceled
+      );
+      this.rerender();
+      this.createSuccess("Route canceled");
+    });
+    routeEl.appendChild(cancelButton);
+
     const deleteButton = document.createElement("button");
     deleteButton.innerText = "Delete route";
     deleteButton.addEventListener("click", (e) => {
@@ -254,18 +364,16 @@ export class RouteGUI {
       }
       this.routeService.deleteRoute(this.userToken, route.id);
       parent.removeChild(routeEl);
+      this.createSuccess("Route deleted");
     });
+    routeEl.appendChild(deleteButton);
 
     parent.appendChild(routeEl);
   }
 
-  showCurrentRoutes() {
-    const wrapper = document.querySelector(
-      "#current-routes-wrapper"
-    ) as HTMLElement;
-    wrapper.innerHTML = "";
+  loadCurrentRoutes() {
     if (!this.userToken) {
-      this.createError("You need to be logged in to see your routes");
+      this.currentRoutes = [];
       return;
     }
     const resp = this.routeService.getRoutes(this.userToken);
@@ -273,12 +381,8 @@ export class RouteGUI {
       this.createError(resp.error as string);
       return;
     }
-    const currentRoutes = resp.data as Route[];
-    for (const route of currentRoutes) {
-      this.renderRoute(wrapper, route);
-    }
+    this.currentRoutes = resp.data as Route[];
   }
-
   createCurrentRoutes(): HTMLElement {
     const currentRoutesEl = document.createElement("div");
     currentRoutesEl.id = "current-routes";
@@ -299,10 +403,11 @@ export class RouteGUI {
     currentRoutesWrapper.id = "current-routes-wrapper";
     currentRoutesEl.appendChild(currentRoutesWrapper);
 
-    const showButton = document.createElement("button");
-    showButton.innerText = "Reload current routes";
-    showButton.addEventListener("click", this.showCurrentRoutes.bind(this));
-    currentRoutesEl.appendChild(showButton);
+    this.loadCurrentRoutes();
+
+    for (const route of this.currentRoutes) {
+      this.renderRoute(currentRoutesWrapper, route);
+    }
 
     return currentRoutesEl;
   }

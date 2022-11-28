@@ -59,20 +59,8 @@ export class Route {
     this.restaurants = this.restaurants.filter((r) => r !== restaurant);
   }
 
-  public start() {
-    this.state = RouteState.Active;
-  }
-
-  public pause() {
-    this.state = RouteState.Paused;
-  }
-
-  public cancel() {
-    this.state = RouteState.Canceled;
-  }
-
-  public finish() {
-    this.state = RouteState.Finished;
+  public setStatus(status: RouteState) {
+    this.state = status;
   }
 
   public setStart(location: Location) {

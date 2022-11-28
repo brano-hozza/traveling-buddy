@@ -1,4 +1,4 @@
-import { Route } from "../entities/Route";
+import { Route, RouteState } from "../entities/Route";
 import { User } from "../entities/User";
 import { Response } from "../helpers/Response";
 
@@ -27,4 +27,9 @@ export interface IRouteService {
   addRoute(token: string, route: Route): Response<void>;
   getRoutes(token: string): Response<Route[]>;
   deleteRoute(token: string, routeId: number): Response<void>;
+  updateRouteStatus(
+    token: string,
+    routeId: number,
+    status: RouteState
+  ): Response<void>;
 }

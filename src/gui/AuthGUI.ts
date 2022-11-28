@@ -5,7 +5,7 @@ import { IAuthService } from "../services/interfaces";
 export class AuthGUI {
   currentToken?: string;
   appDom: HTMLElement;
-  errors: HTMLDivElement;
+  dialogs: HTMLDivElement;
   registerForm?: HTMLFormElement;
   loginForm?: HTMLFormElement;
   logoutForm?: HTMLFormElement;
@@ -14,8 +14,7 @@ export class AuthGUI {
   rerenderCallback?: () => void;
   constructor(private appName: string, private authService: IAuthService) {
     this.appDom = document.querySelector(this.appName) as HTMLElement;
-    this.errors = document.querySelector("#errors") as HTMLDivElement;
-    this.appDom.appendChild(this.errors);
+    this.dialogs = document.querySelector("#dialogs") as HTMLDivElement;
   }
 
   render() {
@@ -48,16 +47,30 @@ export class AuthGUI {
 
   createError(error: string) {
     const errorDiv = document.createElement("div") as HTMLDivElement;
-    errorDiv.innerText = error;
+    errorDiv.innerText = "Error: " + error;
     errorDiv.style.color = "red";
     setTimeout(() => {
       errorDiv.remove();
-      if (!this.errors.children.length) {
-        this.errors.style.display = "none";
+      if (!this.dialogs.children.length) {
+        this.dialogs.style.display = "none";
       }
     }, 2000);
-    this.errors.style.display = "block";
-    this.errors.appendChild(errorDiv);
+    this.dialogs.style.display = "block";
+    this.dialogs.appendChild(errorDiv);
+  }
+
+  createSuccess(success: string) {
+    const successDiv = document.createElement("div") as HTMLDivElement;
+    successDiv.innerText = "Success: " + success;
+    successDiv.style.color = "green";
+    setTimeout(() => {
+      successDiv.remove();
+      if (!this.dialogs.children.length) {
+        this.dialogs.style.display = "none";
+      }
+    }, 2000);
+    this.dialogs.style.display = "block";
+    this.dialogs.appendChild(successDiv);
   }
 
   setRerenderCallback(callback: () => void) {
@@ -84,6 +97,7 @@ export class AuthGUI {
     if (this.rerenderCallback) {
       this.rerenderCallback();
     }
+    this.createSuccess("Logged in");
   }
 
   setLoggedOut() {
@@ -94,6 +108,7 @@ export class AuthGUI {
     if (this.rerenderCallback) {
       this.rerenderCallback();
     }
+    this.createSuccess("Logged out");
   }
 
   createRegisterForm(): HTMLFormElement {

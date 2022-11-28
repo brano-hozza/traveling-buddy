@@ -1,4 +1,4 @@
-import { Route } from "../entities/Route";
+import { Route, RouteState } from "../entities/Route";
 import { Response, ResponseType } from "../helpers/Response";
 import { IAuthService, IRouteService } from "./interfaces";
 
@@ -20,6 +20,28 @@ export class RouteService implements IRouteService {
       this.routes[resp.data?.id as number] = [];
     }
     this.routes[resp.data?.id as number].push(route);
+
+    return Response.ok();
+  }
+
+  updateRouteStatus(
+    token: string,
+    routeId: number,
+    status: RouteState
+  ): Response<void> {
+    const resp = this.authService.getUser(token);
+    if (resp.type === ResponseType.Error) {
+      return Response.error(resp.error as string);
+    }
+    const userRoutes = this.routes[resp.data?.id as number];
+    if (!userRoutes) {
+      return Response.error("No routes found");
+    }
+    const route = userRoutes.find((r) => r.id === routeId);
+    if (!route) {
+      return Response.error("Route not found");
+    }
+    route.setStatus(status);
     return Response.ok();
   }
 
@@ -37,6 +59,7 @@ export class RouteService implements IRouteService {
     this.routes[resp.data?.id as number] = this.routes[
       resp.data?.id as number
     ].filter((r) => r.id !== routeId);
+
     return Response.ok();
   }
 

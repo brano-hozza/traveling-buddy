@@ -5,6 +5,7 @@ import { IUserService } from "./interfaces";
 export class UserService implements IUserService {
   id_counter = 0;
   users: User[] = [];
+
   getNewId(): number {
     return this.id_counter++;
   }
@@ -48,7 +49,8 @@ export class UserService implements IUserService {
     if (!user) {
       return Response.error("User not found");
     }
-    return Response.ok(user.setAdmin());
+    const userNew = user.setAdmin();
+    return Response.ok(userNew);
   }
   createGuest(): User {
     const user = User.CreateGuest(this.getNewId());

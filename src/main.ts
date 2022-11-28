@@ -13,15 +13,18 @@ const authService = new AuthService(userService);
 const routeService = new RouteService(authService);
 
 // Init GUI
-const errors = document.createElement("div");
-errors.innerHTML = "Errors:";
-errors.id = "errors";
-errors.style.color = "red";
-errors.style.border = "1px solid red";
-errors.style.padding = "10px";
-errors.style.display = "none";
+const dialogs = document.createElement("div");
+dialogs.id = "dialogs";
+dialogs.style.border = "2px dashed black";
+dialogs.style.padding = "10px";
+dialogs.style.display = "none";
 
-document.body.appendChild(errors);
+const app = document.querySelector("#app");
+if (!app) {
+  throw new Error("No app element found");
+}
+app?.appendChild(dialogs);
+
 const authGUI = new AuthGUI("#app", authService);
 const routeGUI = new RouteGUI("#app", routeService);
 
