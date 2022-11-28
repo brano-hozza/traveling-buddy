@@ -50,15 +50,15 @@ export class RouteService implements IRouteService {
     if (resp.type === ResponseType.Error) {
       return Response.error(resp.error as string);
     }
-    if (!this.routes[resp.data?.id as number]) {
+    const userId = resp.data?.id as number;
+    if (!this.routes[userId]) {
       return Response.error("User doesnt have routes");
     }
-    if (this.routes[resp.data?.id as number][routeId] === undefined) {
+    const route = this.routes[userId].find((r) => r.id === routeId);
+    if (!route) {
       return Response.error("Route doesnt exist");
     }
-    this.routes[resp.data?.id as number] = this.routes[
-      resp.data?.id as number
-    ].filter((r) => r.id !== routeId);
+    this.routes[userId] = this.routes[userId].filter((r) => r.id !== routeId);
 
     return Response.ok();
   }
