@@ -10,13 +10,15 @@ type SelectOption = { value: string };
 export class RouteGUI {
   appDom: HTMLElement;
   dialogs: HTMLElement;
-  possibleLocations: Location[] = [];
-  possibleHousings: Housing[] = [];
-  possibleRestaurants: Restaurant[] = [];
+  locationOptions: Location[] = [];
+  housingOptions: Housing[] = [];
+  restaurantOptions: Restaurant[] = [];
   routeForm?: HTMLFormElement;
   currentRoutesElement?: HTMLElement;
   currentRoutes: Route[] = [];
   userToken?: string;
+  startLocationFilter?: number;
+  endLocationFilter?: number;
   constructor(private appName: string, private routeService: IRouteService) {
     this.appDom = document.querySelector(this.appName) as HTMLElement;
     this.dialogs = document.querySelector("#dialogs") as HTMLElement;
@@ -24,8 +26,8 @@ export class RouteGUI {
 
   render() {
     this.routeForm = this.createRouteForm();
-    this.currentRoutesElement = this.createCurrentRoutes();
-    if (this.appDom) {
+    this.currentRoutesElement = this.createCurrentRoutesView();
+    if (this.appDom && this.userToken) {
       this.appDom.appendChild(this.routeForm);
       this.appDom.appendChild(this.currentRoutesElement);
     }
@@ -71,11 +73,11 @@ export class RouteGUI {
   }
 
   createRoute(
-    startLocationI: number,
-    endLocationI: number,
-    selectedStopsI: SelectOption[],
-    selectedHousingsI: SelectOption[],
-    selectedRestaurantsI: SelectOption[]
+    startLocationId: number,
+    endLocationId: number,
+    selectedStopsOptions: SelectOption[],
+    selectedHousingsOptions: SelectOption[],
+    selectedRestaurantsOptions: SelectOption[]
   ): boolean {
     if (!this.userToken) {
       this.createError("You need to be logged in to create a route");
@@ -84,30 +86,30 @@ export class RouteGUI {
 
     const newRoute = this.routeService.prepareRoute();
 
-    const startLocation = this.possibleLocations.find(
-      (location) => location.id === startLocationI
+    const startLocation = this.locationOptions.find(
+      (location) => location.id === startLocationId
     ) as Location;
-    const endLocation = this.possibleLocations.find(
-      (location) => location.id === endLocationI
+    const endLocation = this.locationOptions.find(
+      (location) => location.id === endLocationId
     ) as Location;
 
-    const stops = selectedStopsI.map(
+    const stops = selectedStopsOptions.map(
       (stop) =>
-        this.possibleLocations.find(
+        this.locationOptions.find(
           (location) => location.id === parseInt(stop.value)
         ) as Location
     );
 
-    const selectedHousings = selectedHousingsI.map(
+    const selectedHousings = selectedHousingsOptions.map(
       (option) =>
-        this.possibleHousings.find(
+        this.housingOptions.find(
           (housing) => housing.id === parseInt(option.value)
         ) as Housing
     );
 
-    const selectedRestaurants = selectedRestaurantsI.map(
+    const selectedRestaurants = selectedRestaurantsOptions.map(
       (option) =>
-        this.possibleRestaurants.find(
+        this.restaurantOptions.find(
           (restaurant) => restaurant.id === parseInt(option.value)
         ) as Restaurant
     );
@@ -130,6 +132,70 @@ export class RouteGUI {
     return false;
   }
 
+  createMapView(): HTMLElement {
+    const mapDiv = document.createElement("div") as HTMLDivElement;
+    mapDiv.style.border = "1px solid black";
+    mapDiv.style.padding = "10px";
+
+    const title = document.createElement("h2") as HTMLHeadingElement;
+    title.innerText = "Map";
+    mapDiv.appendChild(title);
+
+    const startLabel = document.createElement("label");
+    startLabel.innerText = "Start location";
+    startLabel.style.display = "block";
+    mapDiv.appendChild(startLabel);
+
+    // add dropdowns of locations to pick start
+    const startLocationEl = document.createElement("select");
+    startLocationEl.name = "startLocation";
+    startLocationEl.id = "start-location";
+    this.locationOptions.forEach((location) => {
+      const option = document.createElement("option");
+      option.value = location.id.toString();
+      option.innerText = location.name;
+      startLocationEl.appendChild(option);
+    });
+    mapDiv.appendChild(startLocationEl);
+
+    const endLabel = document.createElement("label");
+    endLabel.innerText = "End location";
+    endLabel.style.display = "block";
+    mapDiv.appendChild(endLabel);
+
+    // add dropdowns of locations to pick end
+    const endLocationEl = document.createElement("select");
+    endLocationEl.name = "endLocation";
+    endLocationEl.id = "end-location";
+    this.locationOptions.forEach((location) => {
+      const option = document.createElement("option");
+      option.value = location.id.toString();
+      option.innerText = location.name;
+      endLocationEl.appendChild(option);
+    });
+    mapDiv.appendChild(endLocationEl);
+
+    const stopsLabel = document.createElement("label");
+    stopsLabel.innerText = "Stops";
+    stopsLabel.style.display = "block";
+    mapDiv.appendChild(stopsLabel);
+
+    // add dropdowns of locations to pick stops
+    const stopsLocationEl = document.createElement("select");
+    stopsLocationEl.name = "stopsLocation";
+    stopsLocationEl.id = "stops-location";
+    stopsLocationEl.multiple = true;
+    this.locationOptions.forEach((location) => {
+      const option = document.createElement("option");
+      option.value = location.id.toString();
+      option.innerText = location.name;
+      stopsLocationEl.appendChild(option);
+    });
+    mapDiv.appendChild(stopsLocationEl);
+
+    return mapDiv;
+  }
+
   createRouteForm(): HTMLFormElement {
     const routeForm = document.createElement("form");
     routeForm.style.border = "1px solid black";
@@ -139,57 +205,8 @@ export class RouteGUI {
     heading.innerText = "Create a new route";
     routeForm.appendChild(heading);
 
-    const startLabel = document.createElement("label");
-    startLabel.innerText = "Start location";
-    startLabel.style.display = "block";
-    routeForm.appendChild(startLabel);
-
-    // add dropdowns of locations to pick start
-    const startLocationEl = document.createElement("select");
-    startLocationEl.name = "startLocation";
-    startLocationEl.id = "start-location";
-    this.possibleLocations.forEach((location) => {
-      const option = document.createElement("option");
-      option.value = location.id.toString();
-      option.innerText = location.name;
-      startLocationEl.appendChild(option);
-    });
-    routeForm.appendChild(startLocationEl);
-
-    const endLabel = document.createElement("label");
-    endLabel.innerText = "End location";
-    endLabel.style.display = "block";
-    routeForm.appendChild(endLabel);
-
-    // add dropdowns of locations to pick end
-    const endLocationEl = document.createElement("select");
-    endLocationEl.name = "endLocation";
-    endLocationEl.id = "end-location";
-    this.possibleLocations.forEach((location) => {
-      const option = document.createElement("option");
-      option.value = location.id.toString();
-      option.innerText = location.name;
-      endLocationEl.appendChild(option);
-    });
-    routeForm.appendChild(endLocationEl);
-
-    const stopsLabel = document.createElement("label");
-    stopsLabel.innerText = "Stops";
-    stopsLabel.style.display = "block";
-    routeForm.appendChild(stopsLabel);
-
-    // add dropdowns of locations to pick stops
-    const stopsLocationEl = document.createElement("select");
-    stopsLocationEl.name = "stopsLocation";
-    stopsLocationEl.id = "stops-location";
-    stopsLocationEl.multiple = true;
-    this.possibleLocations.forEach((location) => {
-      const option = document.createElement("option");
-      option.value = location.id.toString();
-      option.innerText = location.name;
-      stopsLocationEl.appendChild(option);
-    });
-    routeForm.appendChild(stopsLocationEl);
+    const mapView = this.createMapView();
+    routeForm.appendChild(mapView);
 
     const housingLabel = document.createElement("label");
     housingLabel.innerText = "Housings";
@@ -201,7 +218,7 @@ export class RouteGUI {
     housingSelect.name = "housing";
     housingSelect.id = "housings";
     housingSelect.multiple = true;
-    this.possibleHousings.forEach((housing) => {
+    this.housingOptions.forEach((housing) => {
       const option = document.createElement("option");
       option.value = housing.id.toString();
       option.innerText = housing.name;
@@ -219,7 +236,7 @@ export class RouteGUI {
     restaurantSelect.name = "restaurant";
     restaurantSelect.id = "restaurants";
     restaurantSelect.multiple = true;
-    this.possibleRestaurants.forEach((restaurant) => {
+    this.restaurantOptions.forEach((restaurant) => {
       const option = document.createElement("option");
       option.value = restaurant.id.toString();
       option.innerText = restaurant.name;
@@ -364,6 +381,7 @@ export class RouteGUI {
       }
       this.routeService.deleteRoute(this.userToken, route.id);
       parent.removeChild(routeEl);
+      this.rerender();
       this.createSuccess("Route deleted");
     });
     routeEl.appendChild(deleteButton);
@@ -376,14 +394,105 @@ export class RouteGUI {
       this.currentRoutes = [];
       return;
     }
-    const resp = this.routeService.getRoutes(this.userToken);
+    const resp = this.routeService.getRoutes(
+      this.userToken,
+      this.endLocationFilter,
+      this.startLocationFilter
+    );
     if (resp.type === ResponseType.Error) {
       this.createError(resp.error as string);
       return;
     }
     this.currentRoutes = resp.data as Route[];
   }
-  createCurrentRoutes(): HTMLElement {
+  createFiltersForm(): HTMLFormElement {
+    //  filters
+    const filterForm = document.createElement("form");
+    filterForm.style.display = "flex";
+    filterForm.style.flexDirection = "column";
+    filterForm.style.margin = "10px";
+    filterForm.style.padding = "10px";
+    filterForm.style.border = "1px solid black";
+
+    const filterTitle = document.createElement("h3");
+    filterTitle.innerText = "Filters";
+    filterForm.appendChild(filterTitle);
+
+    // start location filter
+
+    const filterStartLabel = document.createElement("label");
+    filterStartLabel.innerText = "Start location filter";
+    filterStartLabel.style.display = "block";
+    filterForm.appendChild(filterStartLabel);
+
+    const filterStartSelect = document.createElement("select");
+    filterStartSelect.name = "filterStartLocation";
+    filterStartSelect.id = "filter-start-location";
+
+    const allStartOption = document.createElement("option");
+    allStartOption.innerText = "All";
+    allStartOption.value = "all";
+    filterStartSelect.appendChild(allStartOption);
+
+    this.locationOptions.forEach((location) => {
+      const option = document.createElement("option");
+      option.value = location.id.toString();
+      option.innerText = location.name;
+      filterStartSelect.appendChild(option);
+    });
+    filterStartSelect.value = this.startLocationFilter?.toString() ?? "all";
+    filterStartSelect.addEventListener("change", (e) => {
+      const target = e.target as HTMLSelectElement;
+      const value = target.value;
+      if (value === "all") {
+        this.startLocationFilter = undefined;
+      } else {
+        this.startLocationFilter = parseInt(value);
+      }
+      this.rerender();
+    });
+
+    filterForm.appendChild(filterStartSelect);
+
+    // End location filter
+
+    const filterEndLabel = document.createElement("label");
+    filterEndLabel.innerText = "End location filter";
+    filterEndLabel.style.display = "block";
+    filterForm.appendChild(filterEndLabel);
+
+    const filterEndSelect = document.createElement("select");
+    filterEndSelect.name = "filterLocation";
+    filterEndSelect.id = "filter-location";
+
+    const allOption = document.createElement("option");
+    allOption.innerText = "All";
+    allOption.value = "all";
+    filterEndSelect.appendChild(allOption);
+
+    this.locationOptions.forEach((location) => {
+      const option = document.createElement("option");
+      option.value = location.id.toString();
+      option.innerText = location.name;
+      filterEndSelect.appendChild(option);
+    });
+    filterEndSelect.value = this.endLocationFilter?.toString() ?? "all";
+    filterEndSelect.addEventListener("change", (e) => {
+      const target = e.target as HTMLSelectElement;
+      const value = target.value;
+      if (value === "all") {
+        this.endLocationFilter = undefined;
+      } else {
+        this.endLocationFilter = parseInt(value);
+      }
+      this.rerender();
+    });
+
+    filterForm.appendChild(filterEndSelect);
+
+    return filterForm;
+  }
+  createCurrentRoutesView(): HTMLElement {
     const currentRoutesEl = document.createElement("div");
     currentRoutesEl.id = "current-routes";
     currentRoutesEl.style.border = "1px solid black";
@@ -392,6 +501,9 @@ export class RouteGUI {
     const currentRoutesTitle = document.createElement("h2");
     currentRoutesTitle.innerText = "Current routes";
     currentRoutesEl.appendChild(currentRoutesTitle);
+
+    const filterForm = this.createFiltersForm();
+    currentRoutesEl.appendChild(filterForm);
 
     const currentRoutesWrapper = document.createElement("div");
     currentRoutesWrapper.style.border = "1px solid black";
@@ -412,15 +524,15 @@ export class RouteGUI {
     return currentRoutesEl;
   }
 
-  addLocation(location: Location) {
-    this.possibleLocations.push(location);
+  addLocationOption(location: Location) {
+    this.locationOptions.push(location);
   }
 
-  addHousing(housing: Housing) {
-    this.possibleHousings.push(housing);
+  addHousingOption(housing: Housing) {
+    this.housingOptions.push(housing);
   }
 
-  addRestaurant(restaurant: Restaurant) {
-    this.possibleRestaurants.push(restaurant);
+  addRestaurantOption(restaurant: Restaurant) {
+    this.restaurantOptions.push(restaurant);
   }
 }

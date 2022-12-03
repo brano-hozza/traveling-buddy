@@ -63,17 +63,22 @@ export class RouteService implements IRouteService {
     return Response.ok();
   }
 
-  getRoutes(token: string): Response<Route[]> {
+  getRoutes(
+    token: string,
+    endLocationFilter?: number,
+    startLocationFilter?: number
+  ): Response<Route[]> {
     const resp = this.authService.getUser(token);
     if (resp.type === ResponseType.Error) {
       return Response.error(resp.error as string);
     }
-    const routes = Object.entries(this.routes).reduce((acc, val) => {
-      if (resp.data?.id === Number(val[0])) {
-        acc.push(...val[1]);
-      }
-      return acc;
-    }, [] as Route[]);
+    let routes = this.routes[resp.data!.id] ?? [];
+    if (endLocationFilter !== undefined) {
+      routes = routes.filter((r) => r.path.end!.id === endLocationFilter);
+    }
+    if (startLocationFilter !== undefined) {
+      routes = routes.filter((r) => r.path.start!.id === startLocationFilter);
+    }
     return Response.ok(routes);
   }
 }

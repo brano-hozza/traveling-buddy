@@ -33,12 +33,12 @@ authGUI.setRerenderCallback(routeGUI.rerender.bind(routeGUI));
 
 // Mock data
 for (let i = 0; i < 10; i++) {
-  routeGUI.addLocation(new Location(i, "Location " + i, "Address " + i));
+  routeGUI.addLocationOption(new Location(i, "Location " + i, "Address " + i));
 
-  routeGUI.addHousing(
+  routeGUI.addHousingOption(
     new Housing(i, "Housing " + i, "Funny address", [`Offer - ${i}`])
   );
-  routeGUI.addRestaurant(
+  routeGUI.addRestaurantOption(
     new Restaurant(i, "Restaurant " + i, "Hungry address", [`Menu item - ${i}`])
   );
 }
