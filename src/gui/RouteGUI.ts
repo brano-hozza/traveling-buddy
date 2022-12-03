@@ -248,6 +248,16 @@ export class RouteGUI {
     submitButton.innerText = "Create route";
     submitButton.addEventListener("click", (e) => {
       e.preventDefault();
+      const startLocationEl = document.getElementById(
+        "start-location"
+      ) as HTMLSelectElement;
+      const endLocationEl = document.getElementById(
+        "end-location"
+      ) as HTMLSelectElement;
+      const stopsLocationEl = document.getElementById(
+        "stops-location"
+      ) as HTMLSelectElement;
+
       const status = this.createRoute(
         parseInt(startLocationEl.value),
         parseInt(endLocationEl.value),
