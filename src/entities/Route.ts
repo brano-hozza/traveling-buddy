@@ -75,3 +75,44 @@ export class Route {
     this.path.addStop(location);
   }
 }
+
+export class RouteBuilder {
+  private route: Route;
+  constructor(id: number) {
+    this.route = new Route(id);
+  }
+
+  public setName(name: string) {
+    this.route.name = name;
+    return this;
+  }
+
+  public setStart(location: Location) {
+    this.route.setStart(location);
+    return this;
+  }
+
+  public setEnd(location: Location) {
+    this.route.setEnd(location);
+    return this;
+  }
+
+  public addStop(location: Location) {
+    this.route.addStop(location);
+    return this;
+  }
+
+  public addHousing(housing: IHousing) {
+    this.route.addHousing(housing);
+    return this;
+  }
+
+  public addRestaurant(restaurant: IRestaurant) {
+    this.route.addRestaurant(restaurant);
+    return this;
+  }
+
+  public build() {
+    return this.route;
+  }
+}

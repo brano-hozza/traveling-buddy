@@ -84,8 +84,6 @@ export class RouteGUI {
       return false;
     }
 
-    const newRoute = this.routeService.prepareRoute();
-
     const startLocation = this.locationOptions.find(
       (location) => location.id === startLocationId
     ) as Location;
@@ -114,18 +112,19 @@ export class RouteGUI {
         ) as Restaurant
     );
 
-    newRoute.setStart(startLocation);
-    newRoute.setEnd(endLocation);
+    const builder = this.routeService.createRouteBuilder();
+
+    builder.setStart(startLocation).setEnd(endLocation);
     for (const stop of stops) {
-      newRoute.addStop(stop);
+      builder.addStop(stop);
     }
     for (const housing of selectedHousings) {
-      newRoute.addHousing(housing);
+      builder.addHousing(housing);
     }
     for (const restaurant of selectedRestaurants) {
-      newRoute.addRestaurant(restaurant);
+      builder.addRestaurant(restaurant);
     }
-    const resp = this.routeService.addRoute(this.userToken, newRoute);
+    const resp = this.routeService.addRoute(this.userToken, builder.build());
     if (resp.type === ResponseType.Ok) {
       return true;
     }
@@ -290,6 +289,18 @@ export class RouteGUI {
     const startLocationEl = document.createElement("p");
     startLocationEl.innerText = `Start location: ${route.path.start!.name}`;
     routeEl.appendChild(startLocationEl);
+
+    if (route.path.stops.length > 0) {
+      const stopsLocationEl = document.createElement("p");
+      stopsLocationEl.innerText = `Stops: ${route.path.stops
+        .map((stop) => stop.name)
+        .join(", ")}`;
+      routeEl.appendChild(stopsLocationEl);
+    } else {
+      const stopsLocationEl = document.createElement("p");
+      stopsLocationEl.innerText = `Stops: None`;
+      routeEl.appendChild(stopsLocationEl);
+    }
 
     const endLocationEl = document.createElement("p");
     endLocationEl.innerText = `End location: ${route.path.end!.name}`;

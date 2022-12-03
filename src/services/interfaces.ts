@@ -1,4 +1,4 @@
-import { Route, RouteState } from "../entities/Route";
+import { Route, RouteBuilder, RouteState } from "../entities/Route";
 import { User } from "../entities/User";
 import { Response } from "../helpers/Response";
 
@@ -23,7 +23,7 @@ export interface IUserService {
 }
 
 export interface IRouteService {
-  prepareRoute(): Route;
+  createRouteBuilder(): RouteBuilder;
   addRoute(token: string, route: Route): Response<void>;
   getRoutes(
     token: string,

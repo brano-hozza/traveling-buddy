@@ -1,4 +1,4 @@
-import { Route, RouteState } from "../entities/Route";
+import { Route, RouteBuilder, RouteState } from "../entities/Route";
 import { Response, ResponseType } from "../helpers/Response";
 import { IAuthService, IRouteService } from "./interfaces";
 
@@ -7,8 +7,8 @@ export class RouteService implements IRouteService {
   routes: Record<number, Route[]> = {};
   constructor(private authService: IAuthService) {}
 
-  prepareRoute() {
-    return new Route(this.id_counter++);
+  createRouteBuilder(): RouteBuilder {
+    return new RouteBuilder(this.id_counter++);
   }
 
   addRoute(token: string, route: Route): Response<void> {
