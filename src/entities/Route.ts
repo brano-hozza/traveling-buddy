@@ -51,14 +51,6 @@ export class Route {
     this.restaurants.push(restaurant);
   }
 
-  public removeHousing(housing: IHousing) {
-    this.housings = this.housings.filter((h) => h !== housing);
-  }
-
-  public removeRestaurant(restaurant: IRestaurant) {
-    this.restaurants = this.restaurants.filter((r) => r !== restaurant);
-  }
-
   public setStatus(status: RouteState) {
     this.state = status;
   }

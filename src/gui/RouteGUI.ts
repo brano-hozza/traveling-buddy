@@ -324,73 +324,87 @@ export class RouteGUI {
       restaurantListEl.appendChild(restaurantEl);
     }
 
-    const startButton = document.createElement("button");
-    startButton.innerText = "Start route";
-    startButton.addEventListener("click", () => {
-      if (!this.userToken) {
-        this.createError("You need to be logged in to create a route");
-        return;
-      }
-      this.routeService.updateRouteStatus(
-        this.userToken,
-        route.id,
-        RouteState.Active
-      );
-      this.rerender();
-      this.createSuccess("Route started");
-    });
-    routeEl.appendChild(startButton);
+    if (
+      route.state === RouteState.Created ||
+      route.state === RouteState.Paused
+    ) {
+      const startButton = document.createElement("button");
+      startButton.innerText = "Start route";
+      startButton.addEventListener("click", () => {
+        if (!this.userToken) {
+          this.createError("You need to be logged in to create a route");
+          return;
+        }
+        this.routeService.updateRouteStatus(
+          this.userToken,
+          route.id,
+          RouteState.Active
+        );
+        this.rerender();
+        this.createSuccess("Route started");
+      });
+      routeEl.appendChild(startButton);
+    }
 
-    const pauseButton = document.createElement("button");
-    pauseButton.innerText = "Pause route";
-    pauseButton.addEventListener("click", () => {
-      if (!this.userToken) {
-        this.createError("You need to be logged in to create a route");
-        return;
-      }
-      this.routeService.updateRouteStatus(
-        this.userToken,
-        route.id,
-        RouteState.Paused
-      );
-      this.rerender();
-      this.createSuccess("Route paused");
-    });
-    routeEl.appendChild(pauseButton);
+    if (route.state === RouteState.Active) {
+      const pauseButton = document.createElement("button");
+      pauseButton.innerText = "Pause route";
+      pauseButton.addEventListener("click", () => {
+        if (!this.userToken) {
+          this.createError("You need to be logged in to create a route");
+          return;
+        }
+        this.routeService.updateRouteStatus(
+          this.userToken,
+          route.id,
+          RouteState.Paused
+        );
+        this.rerender();
+        this.createSuccess("Route paused");
+      });
+      routeEl.appendChild(pauseButton);
+    }
 
-    const finishButton = document.createElement("button");
-    finishButton.innerText = "Finish route";
-    finishButton.addEventListener("click", () => {
-      if (!this.userToken) {
-        this.createError("You need to be logged in to create a route");
-        return;
-      }
-      this.routeService.updateRouteStatus(
-        this.userToken,
-        route.id,
-        RouteState.Finished
-      );
-      this.rerender();
-      this.createSuccess("Route finished");
-    });
-    routeEl.appendChild(finishButton);
+    if (
+      route.state === RouteState.Paused ||
+      route.state === RouteState.Active
+    ) {
+      const finishButton = document.createElement("button");
+      finishButton.innerText = "Finish route";
+      finishButton.addEventListener("click", () => {
+        if (!this.userToken) {
+          this.createError("You need to be logged in to create a route");
+          return;
+        }
+        this.routeService.updateRouteStatus(
+          this.userToken,
+          route.id,
+          RouteState.Finished
+        );
+        this.rerender();
+        this.createSuccess("Route finished");
+      });
+      routeEl.appendChild(finishButton);
+    }
 
-    const cancelButton = document.createElement("button");
-    cancelButton.innerText = "Cancel route";
-    cancelButton.addEventListener("click", () => {
-      if (!this.userToken) {
-        this.createError("You need to be logged in to create a route");
-        return;
-      }
-      this.routeService.updateRouteStatus(
-        this.userToken,
-        route.id,
-        RouteState.Canceled
-      );
-      this.rerender();
-      this.createSuccess("Route canceled");
-    });
-    routeEl.appendChild(cancelButton);
+    if (route.state !== RouteState.Canceled) {
+      const cancelButton = document.createElement("button");
+      cancelButton.innerText = "Cancel route";
+      cancelButton.addEventListener("click", () => {
+        if (!this.userToken) {
+          this.createError("You need to be logged in to create a route");
+          return;
+        }
+        this.routeService.updateRouteStatus(
+          this.userToken,
+          route.id,
+          RouteState.Canceled
+        );
+        this.rerender();
+        this.createSuccess("Route canceled");
+      });
+      routeEl.appendChild(cancelButton);
+    }
 
     const deleteButton = document.createElement("button");
     deleteButton.innerText = "Delete route";
@@ -426,6 +440,7 @@ export class RouteGUI {
     }
     this.currentRoutes = resp.data as Route[];
   }
+
   createFiltersForm(): HTMLFormElement {
     //  filters
     const filterForm = document.createElement("form");
@@ -513,6 +528,7 @@ export class RouteGUI {
 
     return filterForm;
   }
+
   createCurrentRoutesView(): HTMLElement {
     const currentRoutesEl = document.createElement("div");
     currentRoutesEl.id = "current-routes";
