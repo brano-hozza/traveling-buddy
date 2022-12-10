@@ -24,6 +24,9 @@ export class RouteGUI {
     this.dialogs = document.querySelector("#dialogs") as HTMLElement;
   }
 
+  /**
+   * Method to render all parts
+   */
   render() {
     this.routeForm = this.createRouteForm();
     this.currentRoutesElement = this.createCurrentRoutesView();
@@ -33,6 +36,9 @@ export class RouteGUI {
     }
   }
 
+  /**
+   * Metho to recreate existing parts
+   */
   rerender() {
     this.currentRoutesElement?.remove();
     this.routeForm?.remove();
@@ -44,6 +50,10 @@ export class RouteGUI {
     this.userToken = token;
   }
 
+  /**
+   * Method to display error
+   * @param {string} error message to display
+   */
   createError(error: string) {
     const errorDiv = document.createElement("div") as HTMLDivElement;
     errorDiv.innerText = "Error: " + error;
@@ -58,6 +68,10 @@ export class RouteGUI {
     this.dialogs.appendChild(errorDiv);
   }
 
+  /**
+   * Method to display success message
+   * @param {string} success message to display
+   */
   createSuccess(success: string) {
     const successDiv = document.createElement("div") as HTMLDivElement;
     successDiv.innerText = "Success: " + success;
@@ -72,6 +86,15 @@ export class RouteGUI {
     this.dialogs.appendChild(successDiv);
   }
 
+  /**
+   * Method to create new route
+   * @param {number} startLocationId
+   * @param {number} endLocationId
+   * @param {SelectOption[Location]} selectedStopsOptions
+   * @param {SelectOption[Housing]} selectedHousingsOptions
+   * @param {SelectOption[Restaurant]} selectedRestaurantsOptions
+   * @returns
+   */
   createRoute(
     startLocationId: number,
     endLocationId: number,
@@ -124,13 +147,20 @@ export class RouteGUI {
     for (const restaurant of selectedRestaurants) {
       builder.addRestaurant(restaurant);
     }
-    const resp = this.routeService.addRoute(this.userToken, builder.build());
-    if (resp.type === ResponseType.Ok) {
-      return true;
+    const route = builder.build();
+    if (route) {
+      const resp = this.routeService.addRoute(this.userToken, route);
+      if (resp.type === ResponseType.Ok) {
+        return true;
+      }
     }
     return false;
   }
 
+  /**
+   * Method to create map view
+   * @returns Map view
+   */
   createMapView(): HTMLElement {
     const mapDiv = document.createElement("div") as HTMLDivElement;
     mapDiv.style.border = "1px solid black";
@@ -195,6 +225,10 @@ export class RouteGUI {
     return mapDiv;
   }
 
+  /**
+   * Method to create route form for creating routes
+   * @returns Route form
+   */
   createRouteForm(): HTMLFormElement {
     const routeForm = document.createElement("form");
     routeForm.style.border = "1px solid black";
@@ -276,6 +310,11 @@ export class RouteGUI {
     return routeForm;
   }
 
+  /**
+   * Method to display one route
+   * @param parent Parent element
+   * @param route Route to display
+   */
   renderRoute(parent: HTMLElement, route: Route) {
     const routeEl = document.createElement("div");
     routeEl.style.border = "1px solid black";
@@ -424,6 +463,9 @@ export class RouteGUI {
     parent.appendChild(routeEl);
   }
 
+  /**
+   * Method to load current routes to local state
+   */
   loadCurrentRoutes() {
     if (!this.userToken) {
       this.currentRoutes = [];
@@ -441,6 +483,10 @@ export class RouteGUI {
     this.currentRoutes = resp.data as Route[];
   }
 
+  /**
+   * Method to prepare filters menu
+   * @returns Form with filters
+   */
   createFiltersForm(): HTMLFormElement {
     //  filters
     const filterForm = document.createElement("form");
@@ -529,6 +575,9 @@ export class RouteGUI {
     return filterForm;
   }
 
+  /**
+   * Display current routes of user
+   */
   createCurrentRoutesView(): HTMLElement {
     const currentRoutesEl = document.createElement("div");
     currentRoutesEl.id = "current-routes";

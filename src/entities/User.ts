@@ -27,6 +27,11 @@ export class User {
     return this;
   }
 
+  /**
+   * Method to create temporary guest user
+   * @param id ID of user
+   * @returns {User} new guest user
+   */
   public static CreateGuest(id: number): User {
     return new User(id, "Guest", "", "").setGuest();
   }

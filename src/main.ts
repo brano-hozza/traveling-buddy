@@ -19,6 +19,7 @@ dialogs.style.border = "2px dashed black";
 dialogs.style.padding = "10px";
 dialogs.style.display = "none";
 
+// Get main app
 const app = document.querySelector("#app");
 if (!app) {
   throw new Error("No app element found");

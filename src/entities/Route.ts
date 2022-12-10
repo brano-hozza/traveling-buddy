@@ -104,7 +104,14 @@ export class RouteBuilder {
     return this;
   }
 
-  public build() {
-    return this.route;
+  /**
+   * Builds route if every condition is met
+   * @returns {Route}, but {null} if start and stop is not set
+   */
+  public build(): Route | null {
+    if (this.route.path.start && this.route.path.end) {
+      return this.route;
+    }
+    return null;
   }
 }
